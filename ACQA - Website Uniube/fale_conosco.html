@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Fale Conosco - Nicolas Gonçalves de Souza</title>
+    
+</head>
+
+<body>
+
+    <header class="cabecalho">
+        
+        <nav class="menu-navegacao">
+            
+            <a href="index.html" class="link-logo">
+                <img src="Imagens/logo.png" alt="logo">
+            </a>
+
+            <ul class="lista-navegacao">
+                <li><a href="index.html" class="ativo">INÍCIO</a></li>
+                <li><a href="links.html">LINKS</a></li>
+                <li><a href="imagens.html">IMAGENS</a></li>
+                <li><a href="fale_conosco.html">FALE CONOSCO</a></li>
+            </ul>
+
+            <div class="logo-uniube">
+                <a href="https://uniube.br/" target="_blank">
+                    <img src="https://uniube.br/img/landing/logo_azul.svg" alt="Logo Uniube">
+                </a>
+            </div>
+
+        </nav>
+
+    </header>
+
+    <main class="conteudo-principal">
+
+        <section class="secao-formulario">
+
+            <!-- Agrupar em uma box-->
+            <fieldset class="caixa-fieldset">
+
+                <legend>FALE CONOSCO</legend>
+                
+                <form name="formulario" method="post">
+
+                    <!--NOME-->
+                    <div class="grupo-form">
+                        <label for="cliente">Nome:</label>
+                        <input type="text" name="cliente" required placeholder="Digite seu nome"> 
+                    </div>
+
+                    <!--CPF-->
+                    <div class="grupo-form">
+                        <label for="cpf">CPF: * <small>(Sem espaços, pontos ou traços)</small></label>
+                        <input type="text" name="cpf" placeholder="###.###.###-##" autocomplete="off" max="11">
+                    </div>
+
+                    <!--NASCIMENTO-->
+                    <div class="grupo-form">
+                        <label for="data">Data de nascimento:</label>
+                        <input type="date" name="data" required>
+                    </div>
+
+                    <!--TIPO SOLICITAÇÃO-->
+                    <div class="grupo-form">
+                        <span class="label-span">Tipo de Solicitação:</span>
+                        <div>
+                            <input type="checkbox"  name="tipo" value="limpeza">
+                            <label for="limpeza">Limpeza</label>
+                            
+                            <input type="checkbox"  name="tipo" value="manutencao">
+                            <label for="manutencao">Manutenção</label>
+                            
+                            <input type="checkbox" name="tipo" value="update">
+                            <label for="update">Atualização de Hardware/Software</label>
+                        </div>
+                    </div>
+
+                    <!--SISTEMA OP-->
+                    <div class="grupo-form">
+                        <label for="sistema">Sistema Operacional:</label>
+                        <select name="sistema" required>
+                            <option value="">Selecione:</option>
+                            <option value="win7">Windows 7</option>
+                            <option value="win10">Windows 10</option>
+                            <option value="win11">Windows 11</option>
+                            <option value="linux">Linux</option>
+                            <option value="ubuntu">Ubuntu</option>
+                        </select>
+                    </div>
+
+                    <!--CIDADE-->
+                    <div class="grupo-form">
+                        <label for="cidade">Cidade:</label>
+                        <select name="cidade" required>
+                            <option value="">Selecione:</option>
+                            <option value="bh">Belo Horizonte</option>
+                            <option value="bt">Betim</option>
+                            <option value="bm">Brumadinho</option>
+                            <option value="ct">Contagem</option>
+                            <option value="ls">Lagoa Santa</option>
+                            <option value="ma">Mariana</option>
+                            <option value="nl">Nova Lima</option>
+                            <option value="op">Ouro Preto</option>
+                            <option value="sb">Sabará</option>
+                            <option value="sl">Santa Luzia</option>
+                            <option value="td">Tiradentes</option>
+                            <option value="vp">Vespasiano</option>
+                            </select>
+                    </div>
+
+                    <!--EMAIL-->
+                    <div class="grupo-form">
+                        <label for="email">E-mail:</label>
+                        <input type="email" name="email" placeholder="Digite seu email" required> 
+                    </div>
+
+                    <!--TELEFONE-->
+                    <div class="grupo-form">
+                        <label for="telefone">Telefone:</label>
+                        <input type="tel" name="telefone" placeholder="(##) #####-####" autocomplete="off" data-mask="cel" oninput="mascara(this)">
+                    </div>
+
+                    <!--DESCRIÇÃO SOLICITAÇÃO-->
+                    <div class="grupo-form">
+                        <label for="texto">Descreva sua solicitação:</label>
+                        <textarea name="mensagem" rows="10" cols="30" required></textarea> 
+                    </div>
+
+                    <!--ANEXO ARQUIVO-->
+                    <div class="grupo-form">
+                        <label for="upload">Enviar Imagens:</label>
+                        <input type="file" name="upload">
+                    </div>
+
+                    <!--BOTÕES-->
+                    <div class="grupo-botoes">
+                        <input type="reset" value="Limpar" class="btn-limpar">
+                        <input type="submit" value="Enviar" class="btn-enviar">
+                    </div>
+
+                </form>
+
+            </fieldset>
+
+        </section>
+
+    </main>
+
+    <footer class="rodape-final">
+        <p>&copy; 2026 Uniube - 1225298 - Nicolas Gonçalves de Souza</p>
+    </footer>
+
+</body>
+</html>
+
