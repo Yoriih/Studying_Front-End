@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Interativo & Seletor de Hubs USB Ativos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            50: '#fbfbfa',
+                            100: '#f5f4f0',
+                            200: '#e6e4dc',
+                            300: '#d4cfc3',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        teal: {
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        amber: {
+                            600: '#d97706',
+                            700: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 360px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans min-h-screen flex flex-col antialiased">
+
+<!-- Chosen Palette: Warm Neutral Harmony (Warm Stone background, Slate Teal accents, Subtle Amber highlights) -->
+<!-- Application Structure Plan:
+     Designed an interactive selector and multi-dimensional exploration SPA for USB Hubs and Expansion hardware:
+     1. Interactive Decision Wizard: Asks user setup questions (PC type, willingness to open case, target usage) to instantly calculate the ideal Scenario & Product combo.
+     2. Connection Architecture Visualizer: Interactive dynamic topology map comparing Cenário 1 (PCIe + USB-C Hub), Cenário 2 (USB-A Hub), and Cenário 3 (Adapter Quebra-galho) with pros, cons, and performance scores.
+     3. Canvas Bandwidth & Power Chart (Chart.js): Visual comparison of Gbps transfer speeds and Power Delivery output to clearly prove why Cenário 1 outperforms Cenário 3.
+     4. Dynamic Product Matrix & Search/Filter: Full catalog of all 15+ mentioned hubs, PCIe cards, and adapters with real-time category filter, scenario tagging, price sort, and technical specs.
+     5. Critical Technical Knowledge Cards: Interactive accordions covering GPUs vs USB video passthrough, Active vs Passive power, and Reverse Adapters warnings.
+-->
+<!-- Visualization & Content Choices:
+     - Bandwidth & Power Analysis -> Chart.js Bar Chart on HTML Canvas (Strictly NO SVG).
+     - Scenario Topologies -> Dynamic Tailwind CSS HTML Flexbox diagrams with dynamic highlight state (Strictly NO Mermaid JS).
+     - Filtering & Wizard Logic -> Vanilla JS handling reactivity and DOM updates.
+     - Visual Elements & Badges -> Unicode icons and Tailwind styled badge elements.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header Navigation -->
+    <header class="bg-stone-900 text-stone-100 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🔌</span>
+                <span class="font-bold text-lg sm:text-xl tracking-tight text-white">GuiaHubs <span class="text-teal-400 font-light">USB Ativos</span></span>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium text-stone-300">
+                <a href="#wizard-section" class="hover:text-teal-400 transition-colors">Assistente de Escolha</a>
+                <a href="#scenarios-section" class="hover:text-teal-400 transition-colors">Cenários de Conexão</a>
+                <a href="#chart-section" class="hover:text-teal-400 transition-colors">Velocidade & Energia</a>
+                <a href="#catalog-section" class="hover:text-teal-400 transition-colors">Catálogo de Produtos</a>
+                <a href="#faq-section" class="hover:text-teal-400 transition-colors">Alertas Técnicos</a>
+            </nav>
+            <a href="#wizard-section" class="bg-teal-700 hover:bg-teal-800 text-white text-xs sm:text-sm px-3 py-2 rounded-lg font-medium transition-all shadow">
+                Encontrar Meu Hub
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Hero & Introductory Overview -->
+        <section class="bg-white rounded-2xl p-6 sm:p-10 border border-stone-200 shadow-sm text-center sm:text-left relative overflow-hidden">
+            <div class="max-w-3xl space-y-4">
+                <span class="inline-block bg-teal-100 text-teal-800 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
+                    Guia Tático de Hardware
+                </span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight leading-tight">
+                    Expansão USB Ativa: Como Escolher o Hub Certo sem Perda de Desempenho
+                </h1>
+                <p class="text-stone-600 text-base sm:text-lg leading-relaxed">
+                    Precisa de múltiplas portas USB-A e Tipo-C ligadas diretamente na tomada para manter HDs, placas e periféricos estáveis no seu computador de mesa? Explore este guia interativo para calcular a melhor arquitetura e evitar gargalos.
+                </p>
+            </div>
+            <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-stone-100 pt-6">
+                <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                    <span class="block text-2xl">⚡</span>
+                    <span class="block font-bold text-stone-900 text-sm mt-1">Alimentação Ativa</span>
+                    <span class="text-xs text-stone-500">Fonte dedicada na tomada</span>
+                </div>
+                <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                    <span class="block text-2xl">🚀</span>
+                    <span class="block font-bold text-stone-900 text-sm mt-1">Até 20 Gbps</span>
+                    <span class="text-xs text-stone-500">Largura de banda máxima</span>
+                </div>
+                <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                    <span class="block text-2xl">🖥️</span>
+                    <span class="block font-bold text-stone-900 text-sm mt-1">Aviso de GPU</span>
+                    <span class="text-xs text-stone-500">Vídeo direto na Placa</span>
+                </div>
+                <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                    <span class="block text-2xl">📦</span>
+                    <span class="block font-bold text-stone-900 text-sm mt-1">15+ Modelos</span>
+                    <span class="text-xs text-stone-500">Comparados com preço</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: Assistente de Escolha (Wizard) -->
+        <section id="wizard-section" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl">🎯</span>
+                    <h2 class="text-2xl font-bold text-stone-900">Assistente Interativo de Escolha</h2>
+                </div>
+                <p class="text-stone-600 text-sm mt-1">
+                    Esta ferramenta analisa o tipo do seu computador, sua disposição para instalar placas internas e sua necessidade de velocidade para indicar o <strong>Cenário Perfeito</strong> e a combinação de produtos ideal.
+                </p>
+            </div>
+
+            <!-- Quiz Container -->
+            <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 space-y-6">
+                <!-- Question 1 -->
+                <div>
+                    <label class="block font-semibold text-stone-800 text-sm mb-2">1. Qual o tipo do seu computador?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button type="button" onclick="selectWizardOption('comp', 'desktop')" id="opt-desktop" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">💻 Computador de Mesa (Desktop)</span>
+                            <span class="text-xs text-stone-500 block mt-1">Gabinete com slots PCI Express livres.</span>
+                        </button>
+                        <button type="button" onclick="selectWizardOption('comp', 'notebook')" id="opt-notebook" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">💻 Notebook / Mac</span>
+                            <span class="text-xs text-stone-500 block mt-1">Sem possibilidade de abrir o gabinete.</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div id="q2-container">
+                    <label class="block font-semibold text-stone-800 text-sm mb-2">2. Seu computador já possui entrada Tipo-C nativa rápida ou você aceita abrir o PC para instalar uma placa PCIe?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button type="button" onclick="selectWizardOption('open', 'yes')" id="opt-open-yes" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">🛠️ Sim (Tenho USB-C ou posso instalar placa PCIe)</span>
+                            <span class="text-xs text-stone-500 block mt-1">Garante o máximo de velocidade (10 a 20 Gbps) e energia.</span>
+                        </button>
+                        <button type="button" onclick="selectWizardOption('open', 'no')" id="opt-open-no" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">🚫 Não (Prefiro usar apenas portas USB normais externas)</span>
+                            <span class="text-xs text-stone-500 block mt-1">Prático e sem instalação interna (Limite de 5 Gbps).</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div>
+                    <label class="block font-semibold text-stone-800 text-sm mb-2">3. Qual a sua prioridade principal de uso?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button type="button" onclick="selectWizardOption('need', 'many_usb')" id="opt-need-many" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">⚡ Muitas Portas de Dados</span>
+                            <span class="text-xs text-stone-500 block mt-1">Foco em conectar múltiplos HDs, SSDs, câmeras e pen drives.</span>
+                        </button>
+                        <button type="button" onclick="selectWizardOption('need', 'dock')" id="opt-need-dock" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">🏢 Estação Dock de Mesa</span>
+                            <span class="text-xs text-stone-500 block mt-1">Rede Ethernet + leitores + múltiplas portas de dados.</span>
+                        </button>
+                        <button type="button" onclick="selectWizardOption('need', 'simple')" id="opt-need-simple" class="wiz-btn p-4 rounded-xl border border-stone-300 bg-white text-left hover:border-teal-700 transition-all">
+                            <span class="block font-bold text-stone-900">🔌 Expansão Básica Energizada</span>
+                            <span class="text-xs text-stone-500 block mt-1">Apenas estabilidade para teclados, mouses e HDs simples.</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Wizard Recommendation Box -->
+                <div id="wizard-result" class="bg-teal-900 text-white p-6 rounded-xl space-y-3 hidden transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="bg-teal-700 text-teal-100 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Recomendação Personalizada</span>
+                        <span id="wiz-scenario-badge" class="text-amber-400 font-bold text-sm">Cenário 1</span>
+                    </div>
+                    <h3 id="wiz-title" class="text-xl font-bold">Instalar Placa PCIe USB-C + Hub Ativo USB-C 10Gbps</h3>
+                    <p id="wiz-desc" class="text-teal-100 text-sm leading-relaxed">
+                        Esta é a combinação ideal para o seu perfil. Ela entrega alta largura de banda e alimentação dedicada, sem causar gargalos na placa-mãe.
+                    </p>
+                    <div class="pt-3 border-t border-teal-800 flex flex-wrap items-center justify-between gap-2">
+                        <span id="wiz-combo" class="text-xs text-teal-200 font-mono">Sugestão: StarTech PCIe 10Gbps + PULWTOP Hub 72W</span>
+                        <a href="#catalog-section" onclick="filterCatalogByWizard()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-colors">
+                            Ver Produtos no Catálogo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Arquitetura de Cenários (Topologia Interativa) -->
+        <section id="scenarios-section" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl">📐</span>
+                    <h2 class="text-2xl font-bold text-stone-900">Visualizador de Arquitetura de Conexão</h2>
+                </div>
+                <p class="text-stone-600 text-sm mt-1">
+                    Veja como a energia e os dados fluem do seu computador até os periféricos em cada um dos 3 cenários estudados. Clique nos cenários para comparar o desempenho real.
+                </p>
+            </div>
+
+            <!-- Scenario Tabs -->
+            <div class="flex flex-wrap gap-2 border-b border-stone-200 pb-2">
+                <button onclick="switchScenarioTab(1)" id="tab-scen-1" class="scen-tab-btn px-4 py-2 rounded-lg font-bold text-sm bg-teal-700 text-white transition-all">
+                    Cenário 1: Placa PCIe + Hub USB-C (Ideal)
+                </button>
+                <button onclick="switchScenarioTab(2)" id="tab-scen-2" class="scen-tab-btn px-4 py-2 rounded-lg font-bold text-sm bg-stone-200 text-stone-700 hover:bg-stone-300 transition-all">
+                    Cenário 2: Hub USB-A Direto (Prático)
+                </button>
+                <button onclick="switchScenarioTab(3)" id="tab-scen-3" class="scen-tab-btn px-4 py-2 rounded-lg font-bold text-sm bg-stone-200 text-stone-700 hover:bg-stone-300 transition-all">
+                    Cenário 3: Adaptador no PC (Quebra-Galho)
+                </button>
+            </div>
+
+            <!-- Topology Flow Box -->
+            <div id="scenario-flow-container" class="bg-stone-50 p-6 rounded-xl border border-stone-200 space-y-6">
+                <!-- Content injected dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION 3: Gráfico de Velocidades e Energia (Chart.js Canvas) -->
+        <section id="chart-section" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">📊</span>
+                        <h2 class="text-2xl font-bold text-stone-900">Análise de Largura de Banda & Energia</h2>
+                    </div>
+                    <p class="text-stone-600 text-sm mt-1">
+                        Comparativo quantitativo da velocidade máxima teórica de transmissão de dados (Gbps) e potência de alimentação.
+                    </p>
+                </div>
+                <div class="flex space-x-2 bg-stone-100 p-1 rounded-lg border border-stone-200 text-xs font-semibold">
+                    <button onclick="updateChartMetric('speed')" id="btn-chart-speed" class="px-3 py-1.5 rounded-md bg-teal-700 text-white shadow-sm transition-all">
+                        Velocidade (Gbps)
+                    </button>
+                    <button onclick="updateChartMetric('power')" id="btn-chart-power" class="px-3 py-1.5 rounded-md text-stone-700 hover:bg-stone-200 transition-all">
+                        Potência Máxima (Watts)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chart Wrapper Container -->
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+            
+            <p class="text-xs text-stone-500 text-center italic">
+                *Nota: No Cenário 3 (Adaptador), a velocidade é estrangulada pelo limite físico de 5 Gbps da porta USB-A da placa-mãe, tornando inútil a contratação de hubs USB-C de 10 Gbps.
+            </p>
+        </section>
+
+        <!-- SECTION 4: Catálogo e Filtro de Produtos -->
+        <section id="catalog-section" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">🏷️</span>
+                        <h2 class="text-2xl font-bold text-stone-900">Catálogo Comparativo de Hardware</h2>
+                    </div>
+                    <p class="text-stone-600 text-sm mt-1">
+                        Todos os produtos mencionados no guia com especificações, preços estimativos e indicações de uso conjunto.
+                    </p>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="catalog-search" oninput="filterCatalog()" placeholder="Buscar por produto ou marca..." class="px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-700">
+                    <select id="catalog-sort" onchange="filterCatalog()" class="px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-700">
+                        <option value="default">Ordernar por Padrão</option>
+                        <option value="price-asc">Menor Preço em R$</option>
+                        <option value="price-desc">Maior Preço em R$</option>
+                        <option value="speed-desc">Maior Velocidade (Gbps)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Category Pills -->
+            <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                <button onclick="setCategoryFilter('all')" id="pill-all" class="cat-pill px-3 py-1.5 rounded-full bg-teal-700 text-white">
+                    Todos (15+)
+                </button>
+                <button onclick="setCategoryFilter('placa')" id="pill-placa" class="cat-pill px-3 py-1.5 rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300">
+                    Placas PCIe
+                </button>
+                <button onclick="setCategoryFilter('hub-c')" id="pill-hub-c" class="cat-pill px-3 py-1.5 rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300">
+                    Hubs/Docks USB-C
+                </button>
+                <button onclick="setCategoryFilter('hub-a')" id="pill-hub-a" class="cat-pill px-3 py-1.5 rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300">
+                    Hubs Ativos USB-A
+                </button>
+                <button onclick="setCategoryFilter('adapter-ac')" id="pill-adapter-ac" class="cat-pill px-3 py-1.5 rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300">
+                    Adaptadores USB-A ➔ C
+                </button>
+                <button onclick="setCategoryFilter('warning-adapter')" id="pill-warning-adapter" class="cat-pill px-3 py-1.5 rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300">
+                    ⚠️ Adaptadores Inversos
+                </button>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected via Javascript -->
+            </div>
+        </section>
+
+        <!-- SECTION 5: Dicas Técnicas e Alertas Finais -->
+        <section id="faq-section" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl">⚠️</span>
+                    <h2 class="text-2xl font-bold text-stone-900">Alertas e Regras Técnicas Importantes</h2>
+                </div>
+                <p class="text-stone-600 text-sm mt-1">
+                    Entenda as limitações do seu computador de mesa para evitar comprar cabos ou hubs incompatíveis.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- FAQ 1 -->
+                <div class="border border-stone-200 rounded-xl p-4 bg-stone-50">
+                    <h3 class="font-bold text-stone-900 text-base flex items-center space-x-2">
+                        <span>🖥️</span>
+                        <span>Por que NÃO devo ligar o monitor HDMI no Dock Station ligado ao PC Desktop?</span>
+                    </h3>
+                    <p class="text-stone-600 text-sm mt-2 leading-relaxed">
+                        As portas USB normais ou PCIe da placa-mãe de um computador de mesa não possuem comunicação gráfica direta com sua <strong>Placa de Vídeo Dedicada</strong> (NVIDIA/AMD). Se você conectar o monitor no Docking Station, o computador usará o vídeo integrado do processador ou emulação via software, resultando em <strong>perda severa de FPS em jogos e edições</strong>. Mantenha os cabos de vídeo sempre direto na Placa de Vídeo.
+                    </p>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="border border-stone-200 rounded-xl p-4 bg-stone-50">
+                    <h3 class="font-bold text-stone-900 text-base flex items-center space-x-2">
+                        <span>⚡</span>
+                        <span>Qual a diferença técnica de um Hub Passivo vs Hub Ativo na Tomada?</span>
+                    </h3>
+                    <p class="text-stone-600 text-sm mt-2 leading-relaxed">
+                        O Hub Passivo divide apenas os 4.5W (900mA) da porta USB da placa-mãe entre todos os dispositivos conectados. Ao ligar 2 HDs externos juntos, eles desconectam por falta de força. O <strong>Hub Ativo possui fonte externa própria (12V ou 5V)</strong> dedicada a fornecer amparagem constante para cada porta individualmente, suportando HDs, SSDs, interfaces de áudio e placas de captura simultaneamente.
+                    </p>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="border border-stone-200 rounded-xl p-4 bg-stone-50">
+                    <h3 class="font-bold text-stone-900 text-base flex items-center space-x-2">
+                        <span>🔄</span>
+                        <span>O erro comum dos Adaptadores de Fluxo Inverso (C Macho -> A Fêmea)</span>
+                    </h3>
+                    <p class="text-stone-600 text-sm mt-2 leading-relaxed">
+                        Preste atenção no formato do conector! Para ligar periféricos USB-C nas portas retangulares do Hub USB-A (Cenário 2), você precisa de um adaptador <strong>USB-A Macho para USB-C Fêmea</strong>. Adaptadores de fluxo inverso (USB-C Macho para USB-A Fêmea) servem apenas para ligar pendrives antigos em celulares ou MacBooks modernos.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-6 border-t border-stone-800 text-xs text-center">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>Guia Técnico de Expansão de Hubs USB Ativos • Desenvolvido para máxima usabilidade e clareza de dados.</p>
+            <p class="mt-1 text-stone-500">Sem gráficos SVG inline • Renderização em Canvas via Chart.js • Layout Responsivo Tailwind</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        /* ==========================================================================
+           PRODUCT DATABASE
+           ========================================================================== */
+        const products = [
+            {
+                id: 'startech-pcie',
+                name: 'StarTech Placa Controladora USB-C 10Gbps',
+                category: 'placa',
+                scenario: 1,
+                speedGbps: 10,
+                powerWatts: 'SATA (Direto Fonte)',
+                price: 350.00,
+                priceFormatted: 'Aprox. R$ 350,00',
+                desc: 'Adiciona 2 portas USB-C nativas de 10 Gbps na placa-mãe. Alimentação interna SATA. Desempenho máximo para hubs ativos.',
+                icon: '🖥️'
+            },
+            {
+                id: 'pcie-8port',
+                name: 'Placa de Expansão PCIE USB 3.2 8 Portas',
+                category: 'placa',
+                scenario: 1,
+                speedGbps: 20,
+                powerWatts: 'PCIe + Fonte',
+                price: 233.18,
+                priceFormatted: 'R$ 233,18',
+                desc: 'Combo completo com 4 portas Tipo-A e 4 portas Tipo-C na traseira do gabinete. Banda total dividida de 20 Gbps.',
+                icon: '⚡'
+            },
+            {
+                id: 'pulwtop-hub',
+                name: 'PULWTOP Hub USB C 3.2 Ativo (Fonte 72W)',
+                category: 'hub-c',
+                scenario: 1,
+                speedGbps: 10,
+                powerWatts: 'Fonte 72W Tomada',
+                price: 450.00,
+                priceFormatted: 'Aprox. R$ 450,00',
+                desc: 'Focado em alta velocidade e dados: 4 portas USB-A, 3 portas USB-C de 10 Gbps e 2 portas de carga rápida com fonte de 72W.',
+                icon: '🔌'
+            },
+            {
+                id: 'vention-dock',
+                name: 'Docking Station Vention 15 em 1 USB-C',
+                category: 'hub-c',
+                scenario: 1,
+                speedGbps: 5,
+                powerWatts: 'PD 100W Pass',
+                price: 550.00,
+                priceFormatted: 'Aprox. R$ 550,00',
+                desc: 'Formato vertical elegante de mesa. Múltiplas portas USB, Ethernet Gigabit, leitor de cartão. (Vídeo HDMI requer atenção em Desktops).',
+                icon: '🏢'
+            },
+            {
+                id: 'ugreen-revodok',
+                name: 'Docking Station Ugreen Revodok Pro 10 em 1',
+                category: 'hub-c',
+                scenario: 1,
+                speedGbps: 5,
+                powerWatts: 'PD 100W Pass',
+                price: 600.00,
+                priceFormatted: 'Aprox. R$ 600,00',
+                desc: 'Excelente estação de mesa em alumínio. Ethernet Gigabit, leitores SD/TF e suporte a conexões estáveis de dados.',
+                icon: '💼'
+            },
+            {
+                id: 'ugreen-8in1',
+                name: 'Concentrador USB-C Ugreen 8 em 1 (10Gbps)',
+                category: 'hub-c',
+                scenario: 1,
+                speedGbps: 10,
+                powerWatts: 'PD 100W Pass',
+                price: 398.05,
+                priceFormatted: 'R$ 398,05',
+                desc: 'Compacto e veloz. Possui 2 portas USB-C de 10 Gbps e 2 portas USB-A de alta transferência.',
+                icon: '🚀'
+            },
+            {
+                id: 'tplink-uh700',
+                name: 'Hub TP-Link UH700 7 Portas USB 3.0',
+                category: 'hub-a',
+                scenario: 2,
+                speedGbps: 5,
+                powerWatts: 'Fonte Bivolt 12V',
+                price: 320.00,
+                priceFormatted: 'Aprox. R$ 320,00',
+                desc: 'Hub clássico de mesa com 7 portas USB 3.0 retangulares. Acompanha fonte de alimentação dedicada e conecta via USB-A.',
+                icon: '🔌'
+            },
+            {
+                id: 'ugreen-cm481',
+                name: 'Hub Ugreen 7 Portas USB 3.0 CM481',
+                category: 'hub-a',
+                scenario: 2,
+                speedGbps: 5,
+                powerWatts: 'Fonte 12V / 2A',
+                price: 280.00,
+                priceFormatted: 'Aprox. R$ 280,00',
+                desc: '7 portas USB 3.0 de alta durabilidade com fonte externa bivolt dedicada. Ideal para conectar na traseira do PC.',
+                icon: '⚡'
+            },
+            {
+                id: 'startech-switches',
+                name: 'StarTech 7-Port USB 3.2 com Botões Liga/Desliga',
+                category: 'hub-a',
+                scenario: 2,
+                speedGbps: 5,
+                powerWatts: 'Fonte 65W Tomada',
+                price: 450.00,
+                priceFormatted: 'Aprox. R$ 450,00',
+                desc: 'Fonte robusta de 65W com chaves de energia individuais por porta. Permite desligar periféricos sem desplugá-los.',
+                icon: '🎛️'
+            },
+            {
+                id: 'adapter-essager-3a',
+                name: 'Adaptador Essager USB-A Macho para C Fêmea 3A',
+                category: 'adapter-ac',
+                scenario: 2,
+                speedGbps: 5,
+                powerWatts: '3 Amperes Max',
+                price: 20.90,
+                priceFormatted: 'R$ 20,90',
+                desc: 'Permite plugar cabos USB-C modernos nas portas retangulares do Hub do Cenário 2. Suporta 5 Gbps.',
+                icon: '🔁'
+            },
+            {
+                id: 'adapter-c3tech',
+                name: 'Adaptador OTG C3Tech USB-A para USB-C',
+                category: 'adapter-ac',
+                scenario: 2,
+                speedGbps: 5,
+                powerWatts: 'Padrão USB 3.0',
+                price: 20.19,
+                priceFormatted: 'R$ 20,19',
+                desc: 'Design ultracompacto que previne o bloqueio das portas USB vizinhas no seu hub ativo.',
+                icon: '🔹'
+            },
+            {
+                id: 'adapter-essager-5a',
+                name: 'Adaptador Essager USB-A para C Fêmea (5A)',
+                category: 'adapter-ac',
+                scenario: 2,
+                speedGbps: 5,
+                powerWatts: '5 Amperes Max',
+                price: 42.14,
+                priceFormatted: 'R$ 42,14',
+                desc: 'Construção reforçada suportando correntes elétricas mais altas de até 5A para periféricos mais exigentes.',
+                icon: '⚡'
+            },
+            {
+                id: 'adapter-hagibis',
+                name: 'Adaptador USB 3.2 Hagibis 10Gbps (Para PC)',
+                category: 'adapter-ac',
+                scenario: 3,
+                speedGbps: 5,
+                powerWatts: 'Limite da Porta PC',
+                price: 65.00,
+                priceFormatted: 'Aprox. R$ 65,00',
+                desc: 'Adaptador de metal para ligar na traseira do PC (Cenário 3 Quebra-Galho). Nota: velocidade será limitada a 5Gbps pela porta do PC.',
+                icon: '🛠️'
+            },
+            {
+                id: 'adapter-generic-120w',
+                name: 'Adaptador USB 3.2 Liga de Zinco 120W (Para PC)',
+                category: 'adapter-ac',
+                scenario: 3,
+                speedGbps: 5,
+                powerWatts: 'Limite da Porta PC',
+                price: 49.90,
+                priceFormatted: 'R$ 49,90',
+                desc: 'Usado para plugar Hubs USB-C na traseira do PC sem placa PCIe. Corpo metálico com boa dissipação.',
+                icon: '🛡️'
+            },
+            {
+                id: 'warning-essager-inverse',
+                name: 'Adaptador Inverso: USB-C Macho para A Fêmea',
+                category: 'warning-adapter',
+                scenario: 0,
+                speedGbps: 5,
+                powerWatts: 'N/A',
+                price: 16.90,
+                priceFormatted: 'R$ 16,90',
+                desc: '⚠️ ATENÇÃO: Este modelo NÃO serve para adaptar portas de Hubs do Cenário 2! Serve apenas para ligar pendrives em celulares/MacBooks.',
+                icon: '🚫'
+            }
+        ];
+
+        /* ==========================================================================
+           STATE MANAGEMENT
+           ========================================================================== */
+        let wizardState = { comp: 'desktop', open: 'yes', need: 'many_usb' };
+        let activeScenarioTab = 1;
+        let currentChartMetric = 'speed';
+        let performanceChartInstance = null;
+        let currentCategoryFilter = 'all';
+
+        /* ==========================================================================
+           WIZARD LOGIC
+           ========================================================================== */
+        function selectWizardOption(group, val) {
+            wizardState[group] = val;
+            
+            // Visual updates for buttons
+            document.querySelectorAll(`[id^="opt-${group}"]`).forEach(btn => {
+                btn.classList.remove('border-teal-700', 'bg-teal-50', 'ring-2', 'ring-teal-700');
+                btn.classList.add('border-stone-300', 'bg-white');
+            });
+            const selectedBtn = document.getElementById(`opt-${group}-${val}`) || document.getElementById(`opt-${val}`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-stone-300', 'bg-white');
+                selectedBtn.classList.add('border-teal-700', 'bg-teal-50', 'ring-2', 'ring-teal-700');
+            }
+
+            evaluateWizard();
+        }
+
+        function evaluateWizard() {
+            const resBox = document.getElementById('wizard-result');
+            const scenBadge = document.getElementById('wiz-scenario-badge');
+            const titleEl = document.getElementById('wiz-title');
+            const descEl = document.getElementById('wiz-desc');
+            const comboEl = document.getElementById('wiz-combo');
+
+            resBox.classList.remove('hidden');
+
+            if (wizardState.comp === 'desktop' && wizardState.open === 'yes') {
+                scenBadge.textContent = 'Cenário 1 (Ideal)';
+                titleEl.textContent = 'Instalar Placa PCIe USB-C + Hub USB-C Ativo (10Gbps)';
+                descEl.textContent = 'Como você possui um PC Desktop e pode abrir o gabinete, instalar uma placa PCIe entrega portas Tipo-C nativas de 10 a 20 Gbps. É a única forma de extrair 100% da velocidade e energia de Hubs ativos potentes.';
+                comboEl.textContent = 'Combinação Recomendada: StarTech PCIe 10Gbps + PULWTOP Hub 72W';
+            } else if (wizardState.open === 'no' || wizardState.comp === 'notebook') {
+                if (wizardState.need === 'dock') {
+                    scenBadge.textContent = 'Cenário 1 ou 2';
+                    titleEl.textContent = 'Docking Station USB-C ou Hub Ativo USB 3.0 com Fonte';
+                    descEl.textContent = 'Sem abrir o computador, recomendamos um Hub USB 3.0 Ativo ligado em uma porta USB comum de 5 Gbps. Ele garantirá estabilidade elétrica na tomada para todos os seus acessórios.';
+                    comboEl.textContent = 'Combinação Recomendada: Hub TP-Link UH700 + Adaptadores Essager USB-C';
+                } else {
+                    scenBadge.textContent = 'Cenário 2 (Mais Prático)';
+                    titleEl.textContent = 'Hub USB 3.0 Ativo na Tomada (Conexão USB-A)';
+                    descEl.textContent = 'Para não precisar abrir o PC e evitar gargalos confusos, use um Hub com cabo USB retangular comum já alimentado na tomada. Se tiver cabos Tipo-C, use adaptadores simples de R$ 20 nas portas do hub.';
+                    comboEl.textContent = 'Combinação Recomendada: Hub Ugreen CM481 (7 Portas) + Adaptador C3Tech';
+                }
+            }
+        }
+
+        function filterCatalogByWizard() {
+            if (wizardState.open === 'yes' && wizardState.comp === 'desktop') {
+                setCategoryFilter('placa');
+            } else {
+                setCategoryFilter('hub-a');
+            }
+        }
+
+        /* ==========================================================================
+           SCENARIO TOPOLOGY RENDERER
+           ========================================================================== */
+        const scenarioFlowData = {
+            1: {
+                title: 'Cenário 1: Expansão via Placa PCIe (Solução Ideal)',
+                badge: 'Alta Performance (10-20 Gbps)',
+                badgeColor: 'bg-teal-700 text-white',
+                steps: [
+                    { label: 'Placa-Mãe Desktop', desc: 'Slot PCI Express Livre', icon: '🖥️' },
+                    { label: 'Placa Expansão PCIe', desc: 'Controladora SATA 10/20Gbps', icon: '🔌' },
+                    { label: 'Hub USB-C Ativo', desc: 'Fonte Dedicada 72W Tomada', icon: '⚡' },
+                    { label: 'Dispositivos', desc: 'SSDs, HDs, Placas de Captura', icon: '🚀' }
+                ],
+                pros: ['Velocidade máxima sem gargalo (10 Gbps a 20 Gbps)', 'Alimentação estável alimentada pela Fonte do PC + Tomada do Hub', 'Portas Tipo-C Nativas de alta amperagem'],
+                cons: ['Exige abrir o gabinete do computador para instalar a placa PCIe'],
+                score: '98/100 (Recomendado para Desktops)'
+            },
+            2: {
+                title: 'Cenário 2: Hub USB 3.0 Ativo Direto no PC (Solução Prática)',
+                badge: 'Balanço Prático (5 Gbps)',
+                badgeColor: 'bg-amber-600 text-white',
+                steps: [
+                    { label: 'Placa-Mãe PC', desc: 'Porta USB 3.0 Retangular', icon: '💻' },
+                    { label: 'Hub USB 3.0 Ativo', desc: 'Fonte Externa Bivolt na Tomada', icon: '🔌' },
+                    { label: 'Adaptador USB A->C', desc: 'Opcional para cabos Tipo-C', icon: '🔄' },
+                    { label: 'Periféricos', desc: 'HDs, Mouses, Interfaces de Áudio', icon: '📦' }
+                ],
+                pros: ['Sem necessidade de abrir o gabinete', 'Alimentação elétrica robusta de tomada para periféricos pesados', 'Excelente estabilidade para múltiplos dispositivos'],
+                cons: ['Largura de banda total limitada a 5 Gbps pelo padrão USB 3.0 comum'],
+                score: '85/100 (Muito Bom e Fácil)'
+            },
+            3: {
+                title: 'Cenário 3: Adaptador na Traseira do PC + Hub USB-C (Quebra-Galho)',
+                badge: 'Ineficiente / Gargalo (5 Gbps)',
+                badgeColor: 'bg-stone-700 text-stone-200',
+                steps: [
+                    { label: 'Placa-Mãe PC', desc: 'Porta USB 3.0 Comum', icon: '💻' },
+                    { label: 'Adaptador A -> C', desc: 'Gargalo de Banda (5Gbps)', icon: '⚠️' },
+                    { label: 'Hub USB-C 10Gbps', desc: 'Subaproveitado / Limitado', icon: '📉' },
+                    { label: 'Periféricos', desc: 'Velocidade Reduzida', icon: '🐢' }
+                ],
+                pros: ['Permite usar um Hub USB-C moderno em PCs antigos'],
+                cons: ['Gargalo severo: você paga caro em um Hub de 10Gbps que funcionará a 5Gbps', 'Sem suporte a protocolos avançados como Power Delivery reverso ou vídeo nativo'],
+                score: '50/100 (Não Recomendado)'
+            }
+        };
+
+        function switchScenarioTab(scenId) {
+            activeScenarioTab = scenId;
+            document.querySelectorAll('.scen-tab-btn').forEach((btn, idx) => {
+                if (idx + 1 === scenId) {
+                    btn.className = 'scen-tab-btn px-4 py-2 rounded-lg font-bold text-sm bg-teal-700 text-white transition-all shadow-sm';
+                } else {
+                    btn.className = 'scen-tab-btn px-4 py-2 rounded-lg font-bold text-sm bg-stone-200 text-stone-700 hover:bg-stone-300 transition-all';
+                }
+            });
+
+            renderScenarioTopology(scenId);
+        }
+
+        function renderScenarioTopology(scenId) {
+            const data = scenarioFlowData[scenId];
+            const container = document.getElementById('scenario-flow-container');
+
+            let stepsHtml = data.steps.map((step, i) => `
+                <div class="flex-1 bg-white p-4 rounded-xl border border-stone-200 text-center relative shadow-sm">
+                    <span class="text-3xl block mb-2">${step.icon}</span>
+                    <span class="font-bold text-stone-900 text-xs sm:text-sm block">${step.label}</span>
+                    <span class="text-stone-500 text-xs block mt-1">${step.desc}</span>
+                    ${i < data.steps.length - 1 ? `<div class="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 text-stone-400 font-bold">➔</div>` : ''}
+                </div>
+            `).join('');
+
+            let prosHtml = data.pros.map(p => `<li class="flex items-start space-x-2"><span class="text-teal-700 font-bold">✓</span><span>${p}</span></li>`).join('');
+            let consHtml = data.cons.map(c => `<li class="flex items-start space-x-2"><span class="text-amber-600 font-bold">✕</span><span>${c}</span></li>`).join('');
+
+            container.innerHTML = `
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <h3 class="font-bold text-lg text-stone-900">${data.title}</h3>
+                    <span class="px-3 py-1 rounded-full font-bold text-xs ${data.badgeColor}">${data.badge}</span>
+                </div>
+
+                <!-- Step Diagram -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 py-2">
+                    ${stepsHtml}
+                </div>
+
+                <!-- Pros and Cons Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 text-sm">
+                    <div class="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
+                        <span class="font-bold text-teal-900 block mb-2">Vantagens Técnicas:</span>
+                        <ul class="space-y-1.5 text-stone-700 text-xs sm:text-sm">${prosHtml}</ul>
+                    </div>
+                    <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+                        <span class="font-bold text-amber-900 block mb-2">Pontos de Atenção / Limitações:</span>
+                        <ul class="space-y-1.5 text-stone-700 text-xs sm:text-sm">${consHtml}</ul>
+                    </div>
+                </div>
+
+                <div class="bg-white p-3 rounded-lg border border-stone-200 flex items-center justify-between text-xs">
+                    <span class="font-bold text-stone-700">Índice de Eficiência Recomendado:</span>
+                    <span class="font-extrabold text-teal-800 text-sm">${data.score}</span>
+                </div>
+            `;
+        }
+
+        /* ==========================================================================
+           CHART.JS IMPLEMENTATION (CANVAS ONLY)
+           ========================================================================== */
+        function initChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            const chartData = {
+                labels: ['Cenário 1 (PCIe + Hub C)', 'Cenário 2 (Hub A 3.0)', 'Cenário 3 (Adapt. PC)', 'USB 2.0 Antigo'],
+                datasets: [{
+                    label: 'Largura de Banda Transmissão (Gbps)',
+                    data: [10.0, 5.0, 5.0, 0.48],
+                    backgroundColor: [
+                        'rgba(15, 118, 110, 0.85)',
+                        'rgba(217, 119, 6, 0.85)',
+                        'rgba(120, 113, 108, 0.85)',
+                        'rgba(214, 211, 209, 0.85)'
+                    ],
+                    borderColor: [
+                        '#0f766e',
+                        '#d97706',
+                        '#78716c',
+                        '#a8a29e'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            };
+
+            performanceChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + (currentChartMetric === 'speed' ? ' Gbps' : ' Watts (Potência)');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f3f4f6' },
+                            ticks: {
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return value + (currentChartMetric === 'speed' ? ' Gbps' : ' W');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, weight: '600' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartMetric(metric) {
+            currentChartMetric = metric;
+            const btnSpeed = document.getElementById('btn-chart-speed');
+            const btnPower = document.getElementById('btn-chart-power');
+
+            if (metric === 'speed') {
+                btnSpeed.className = 'px-3 py-1.5 rounded-md bg-teal-700 text-white shadow-sm transition-all';
+                btnPower.className = 'px-3 py-1.5 rounded-md text-stone-700 hover:bg-stone-200 transition-all';
+                
+                performanceChartInstance.data.datasets[0].label = 'Largura de Banda Transmissão (Gbps)';
+                performanceChartInstance.data.datasets[0].data = [10.0, 5.0, 5.0, 0.48];
+            } else {
+                btnPower.className = 'px-3 py-1.5 rounded-md bg-teal-700 text-white shadow-sm transition-all';
+                btnSpeed.className = 'px-3 py-1.5 rounded-md text-stone-700 hover:bg-stone-200 transition-all';
+                
+                performanceChartInstance.data.datasets[0].label = 'Potência Estimada de Alimentação (Watts)';
+                performanceChartInstance.data.datasets[0].data = [72.0, 24.0, 4.5, 2.5]; // Watts
+            }
+
+            performanceChartInstance.update();
+        }
+
+        /* ==========================================================================
+           CATALOG FILTER & RENDER
+           ========================================================================== */
+        function setCategoryFilter(cat) {
+            currentCategoryFilter = cat;
+            document.querySelectorAll('.cat-pill').forEach(btn => {
+                btn.className = 'cat-pill px-3 py-1.5 rounded-full bg-stone-200 text-stone-700 hover:bg-stone-300';
+            });
+            const activePill = document.getElementById(`pill-${cat}`);
+            if (activePill) {
+                activePill.className = 'cat-pill px-3 py-1.5 rounded-full bg-teal-700 text-white';
+            }
+            filterCatalog();
+        }
+
+        function filterCatalog() {
+            const searchTerm = document.getElementById('catalog-search').value.toLowerCase();
+            const sortVal = document.getElementById('catalog-sort').value;
+
+            let filtered = products.filter(p => {
+                const matchesCat = (currentCategoryFilter === 'all') || (p.category === currentCategoryFilter);
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm);
+                return matchesCat && matchesSearch;
+            });
+
+            if (sortVal === 'price-asc') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sortVal === 'price-desc') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (sortVal === 'speed-desc') {
+                filtered.sort((a, b) => b.speedGbps - a.speedGbps);
+            }
+
+            renderCatalog(filtered);
+        }
+
+        function renderCatalog(items) {
+            const grid = document.getElementById('product-grid');
+            if (items.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-8 bg-stone-50 rounded-xl border border-stone-200">
+                        <span class="text-3xl">🔍</span>
+                        <p class="text-stone-600 font-medium mt-2">Nenhum produto encontrado para estes filtros.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = items.map(p => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-teal-700 transition-all shadow-sm">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl p-2 bg-white rounded-lg border border-stone-200">${p.icon}</span>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full ${p.scenario === 1 ? 'bg-teal-100 text-teal-800' : p.scenario === 2 ? 'bg-amber-100 text-amber-800' : 'bg-stone-200 text-stone-700'}">
+                                ${p.scenario > 0 ? 'Cenário ' + p.scenario : 'Aviso Especial'}
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-stone-900 text-base leading-snug">${p.name}</h3>
+                        <p class="text-stone-600 text-xs leading-relaxed">${p.desc}</p>
+                    </div>
+
+                    <div class="pt-3 border-t border-stone-200 space-y-2">
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-white p-2 rounded border border-stone-200">
+                                <span class="text-stone-400 block font-semibold text-[10px] uppercase">Velocidade</span>
+                                <span class="font-bold text-stone-800">${p.speedGbps} Gbps</span>
+                            </div>
+                            <div class="bg-white p-2 rounded border border-stone-200">
+                                <span class="text-stone-400 block font-semibold text-[10px] uppercase">Energia</span>
+                                <span class="font-bold text-stone-800">${p.powerWatts}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-xs text-stone-500 font-medium">Preço Médio:</span>
+                            <span class="text-base font-extrabold text-stone-900">${p.priceFormatted}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* ==========================================================================
+           INITIALIZATION
+           ========================================================================== */
+        document.addEventListener('DOMContentLoaded', () => {
+            selectWizardOption('comp', 'desktop');
+            selectWizardOption('open', 'yes');
+            selectWizardOption('need', 'many_usb');
+            renderScenarioTopology(1);
+            initChart();
+            filterCatalog();
+        });
+    </script>
+</body>
+</html>
